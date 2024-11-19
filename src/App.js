@@ -52,19 +52,24 @@ const average = (arr) =>
 export default function App() {
   const [query, setQuery] = useState("");
   const [movies, setMovies] = useState([]);
+  const [IsLoading, setisLoading]= useState(false);
   useEffect(function () {
+    
     async function fetchMovie() {
+      setisLoading(true);
       const res = await fetch(
         `http://www.omdbapi.com/?apikey=${KEY}&s=interstellar`
       );
       const data = await res.json();
       setMovies(data.Search);
+      setisLoading(false);
     }
     /*  .then((res) => res.json())
     .then((data) => setMovies(
       )); */
     fetchMovie();
-  });
+    
+  },[]);
 
   return (
     <>
@@ -83,7 +88,7 @@ export default function App() {
       </Navbar>
       <Main>
         <Box1>
-          {movies?.map((movie) => (
+        {IsLoading?<Loder/> : movies?.map((movie) => (
             <li key={movie.imdbID}>
               <img src={movie.Poster} alt={`${movie.Title} poster`} />
               <h3>{movie.Title}</h3>
@@ -94,12 +99,16 @@ export default function App() {
                 </p>
               </div>
             </li>
-          ))}
+          ))}  
         </Box1>
       </Main>
     </>
   );
 }
+function Loder(){
+  return <p className="loader">Loding...</p>
+}
+
 function Navbar({ children }) {
   return (
     <nav className="nav-bar">
