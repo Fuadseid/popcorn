@@ -162,7 +162,7 @@ function Main({ children }) {
         {isOpen2 && (
           <>
             <div className="summary">
-              <h2>Movies you watched</h2>
+              <h2>Movies you that watched</h2>
               <div>
                 <p>
                   <span>#️⃣</span>
