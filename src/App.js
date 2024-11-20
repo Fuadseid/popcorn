@@ -52,24 +52,35 @@ const average = (arr) =>
 export default function App() {
   const [query, setQuery] = useState("");
   const [movies, setMovies] = useState([]);
-  const [IsLoading, setisLoading]= useState(false);
+  const [IsLoading, setisLoading] = useState(false);
+  const [error, setError] = useState("");
+  const quiry = `interstellar`;
   useEffect(function () {
-    
     async function fetchMovie() {
-      setisLoading(true);
-      const res = await fetch(
-        `http://www.omdbapi.com/?apikey=${KEY}&s=interstellar`
-      );
-      const data = await res.json();
-      setMovies(data.Search);
-      setisLoading(false);
+      try {
+        setisLoading(true);
+        const res = await fetch(
+          `http://www.omdbapi.com/?apikey=${KEY}&s=${quiry}`
+        );
+        if (!res.ok)
+          throw new Error("Something went wrong on fetching a Movie");
+        const data = await res.json();
+        console.log(data)
+      if(data.Response==='False') throw new Error("Movie that is not Found")
+        setMovies(data.Search);
+      } catch (err) {
+        
+          setError(err.message);
+        
+      } finally {
+        setisLoading(false);
+      }
     }
     /*  .then((res) => res.json())
     .then((data) => setMovies(
       )); */
     fetchMovie();
-    
-  },[]);
+  }, []);
 
   return (
     <>
@@ -88,25 +99,37 @@ export default function App() {
       </Navbar>
       <Main>
         <Box1>
-        {IsLoading?<Loder/> : movies?.map((movie) => (
-            <li key={movie.imdbID}>
-              <img src={movie.Poster} alt={`${movie.Title} poster`} />
-              <h3>{movie.Title}</h3>
-              <div>
-                <p>
-                  <span>🗓</span>
-                  <span>{movie.Year}</span>
-                </p>
-              </div>
-            </li>
-          ))}  
+          {IsLoading && <Loder />}
+          {!IsLoading &&
+            !error &&
+            movies?.map((movie) => (
+              <li key={movie.imdbID}>
+                <img src={movie.Poster} alt={`${movie.Title} poster`} />
+                <h3>{movie.Title}</h3>
+                <div>
+                  <p>
+                    <span>🗓</span>
+                    <span>{movie.Year}</span>
+                  </p>
+                </div>
+              </li>
+            ))}
+          {error && <Errorpage message={error} />}
         </Box1>
       </Main>
     </>
   );
 }
-function Loder(){
-  return <p className="loader">Loding...</p>
+function Errorpage({ message }) {
+  return (
+    <p className="error">
+      <span>💀</span>
+      {message}
+    </p>
+  );
+}
+function Loder() {
+  return <p className="loader">Loding...</p>;
 }
 
 function Navbar({ children }) {
