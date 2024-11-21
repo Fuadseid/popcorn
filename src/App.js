@@ -50,37 +50,53 @@ const KEY = "2c37991c";
 const average = (arr) =>
   arr.reduce((acc, cur, i, arr) => acc + cur / arr.length, 0);
 export default function App() {
-  const [query, setQuery] = useState("");
+  const [query, setQuery] = useState("inception");
   const [movies, setMovies] = useState([]);
   const [IsLoading, setisLoading] = useState(false);
   const [error, setError] = useState("");
-  const quiry = `interstellar`;
-  useEffect(function () {
-    async function fetchMovie() {
-      try {
-        setisLoading(true);
-        const res = await fetch(
-          `http://www.omdbapi.com/?apikey=${KEY}&s=${quiry}`
-        );
-        if (!res.ok)
-          throw new Error("Something went wrong on fetching a Movie");
-        const data = await res.json();
-        console.log(data)
-      if(data.Response==='False') throw new Error("Movie that is not Found")
-        setMovies(data.Search);
-      } catch (err) {
-        
+  const [selectedId, setSelectedId] = useState(null);
+
+  function handleselect(id) {
+    setSelectedId(id);
+    console.log(id);
+  }
+  // const quiry = `interstellar`;
+  useEffect(
+    function () {
+      async function fetchMovie() {
+        try {
+          setisLoading(true);
+
+          const res = await fetch(
+            `http://www.omdbapi.com/?apikey=${KEY}&s=${query}`
+          );
+
+          if (!res.ok)
+            throw new Error("Something went wrong on fetching a Movie");
+          const data = await res.json();
+          console.log(data);
+          if (data.Response === "False")
+            throw new Error("Movie that is not Found");
+          setMovies(data.Search);
+          console.log(data.Search);
+        } catch (err) {
           setError(err.message);
-        
-      } finally {
-        setisLoading(false);
+        } finally {
+          setisLoading(false);
+        }
+        if (query.length < 3) {
+          setMovies([]);
+          setError("");
+          return;
+        }
       }
-    }
-    /*  .then((res) => res.json())
+      /*  .then((res) => res.json())
     .then((data) => setMovies(
       )); */
-    fetchMovie();
-  }, []);
+      fetchMovie();
+    },
+    [query]
+  );
 
   return (
     <>
@@ -97,13 +113,13 @@ export default function App() {
           Found <strong>{movies.length}</strong> results
         </Result>
       </Navbar>
-      <Main>
-        <Box1>
+      <Main selectedId={selectedId} onSelectedId={handleselect} movies={movies}>
+        <Box1 onSelectedId={handleselect} movies={movies}>
           {IsLoading && <Loder />}
           {!IsLoading &&
             !error &&
             movies?.map((movie) => (
-              <li key={movie.imdbID}>
+              <li key={movie.imdbID} onClick={() => handleselect(movie.imdbID)}>
                 <img src={movie.Poster} alt={`${movie.Title} poster`} />
                 <h3>{movie.Title}</h3>
                 <div>
@@ -155,14 +171,13 @@ function Logo() {
 function Box1({ children }) {
   return <div className="box">{children}</div>;
 }
-function Main({ children }) {
+function Main({ children, selectedId, setSelectedId, movies }) {
   const [isOpen1, setIsOpen1] = useState(true);
   const [isOpen2, setIsOpen2] = useState(true);
   const [watched, setWatched] = useState(tempWatchedData);
   const avgImdbRating = average(watched.map((movie) => movie.imdbRating));
   const avgUserRating = average(watched.map((movie) => movie.userRating));
   const avgRuntime = average(watched.map((movie) => movie.runtime));
-
   return (
     <main className="main">
       <Box1>
@@ -172,7 +187,7 @@ function Main({ children }) {
         >
           {isOpen1 ? "–" : "+"}
         </button>
-        {isOpen1 && <ul className="list">{children}</ul>}
+        {isOpen1 && <ul className="list list-movies ">{children}</ul>}
       </Box1>
 
       <div className="box">
@@ -184,53 +199,62 @@ function Main({ children }) {
         </button>
         {isOpen2 && (
           <>
-            <div className="summary">
-              <h2>Movies you that watched</h2>
-              <div>
-                <p>
-                  <span>#️⃣</span>
-                  <span>{watched.length} movies</span>
-                </p>
-                <p>
-                  <span>⭐️</span>
-                  <span>{avgImdbRating}</span>
-                </p>
-                <p>
-                  <span>🌟</span>
-                  <span>{avgUserRating}</span>
-                </p>
-                <p>
-                  <span>⏳</span>
-                  <span>{avgRuntime} min</span>
-                </p>
-              </div>
-            </div>
-
-            <ul className="list">
-              {watched.map((movie) => (
-                <li key={movie.imdbID}>
-                  <img src={movie.Poster} alt={`${movie.Title} poster`} />
-                  <h3>{movie.Title}</h3>
+            {selectedId ? (
+              <Moviedetail selectedId={selectedId} />
+            ) : (
+              <>
+                {" "}
+                <div className="summary">
+                  <h2>Movies you that watched</h2>
                   <div>
                     <p>
+                      <span>#️⃣</span>
+                      <span>{watched.length} movies</span>
+                    </p>
+                    <p>
                       <span>⭐️</span>
-                      <span>{movie.imdbRating}</span>
+                      <span>{avgImdbRating}</span>
                     </p>
                     <p>
                       <span>🌟</span>
-                      <span>{movie.userRating}</span>
+                      <span>{avgUserRating}</span>
                     </p>
                     <p>
                       <span>⏳</span>
-                      <span>{movie.runtime} min</span>
+                      <span>{avgRuntime} min</span>
                     </p>
                   </div>
-                </li>
-              ))}
-            </ul>
+                </div>
+                <ul className="list ">
+                  {watched.map((movie) => (
+                    <li key={movie.imdbID}>
+                      <img src={movie.Poster} alt={`${movie.Title} poster`} />
+                      <h3>{movie.Title}</h3>
+                      <div>
+                        <p>
+                          <span>⭐️</span>
+                          <span>{movie.imdbRating}</span>
+                        </p>
+                        <p>
+                          <span>🌟</span>
+                          <span>{movie.userRating}</span>
+                        </p>
+                        <p>
+                          <span>⏳</span>
+                          <span>{movie.runtime} min</span>
+                        </p>
+                      </div>
+                    </li>
+                  ))}
+                </ul>{" "}
+              </>
+            )}
           </>
         )}
       </div>
     </main>
   );
+}
+function Moviedetail({ selectedId }) {
+  return <div className="details">{selectedId}</div>;
 }
