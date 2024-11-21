@@ -4,7 +4,7 @@ import React, { useState } from "react";
 
 
 
-export const StarRating = ({
+ const StarRating = ({
   maxrate = 5,
   color = "#fcc419",
   size = 48,
@@ -135,3 +135,6 @@ EMPTY STAR
 </svg>
 
 */
+
+
+export default StarRating;

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-
+import StarRating from "./StarRating";
 const tempMovieData = [
   {
     imdbID: "tt1375666",
@@ -60,6 +60,9 @@ export default function App() {
     setSelectedId(id);
     console.log(id);
   }
+  function handleback() {
+    setSelectedId(null);
+  }
   // const quiry = `interstellar`;
   useEffect(
     function () {
@@ -113,27 +116,37 @@ export default function App() {
           Found <strong>{movies.length}</strong> results
         </Result>
       </Navbar>
-      <Main selectedId={selectedId} onSelectedId={handleselect} movies={movies}>
-        <Box1 onSelectedId={handleselect} movies={movies}>
+      <Main
+        selectedId={selectedId}
+        onSelectedId={handleselect}
+        handleback={handleback}
+        movies={movies}
+      >
+        <Box1 movies={movies}>
           {IsLoading && <Loder />}
           {!IsLoading &&
             !error &&
             movies?.map((movie) => (
-              <li key={movie.imdbID} onClick={() => handleselect(movie.imdbID)}>
-                <img src={movie.Poster} alt={`${movie.Title} poster`} />
-                <h3>{movie.Title}</h3>
-                <div>
-                  <p>
-                    <span>🗓</span>
-                    <span>{movie.Year}</span>
-                  </p>
-                </div>
-              </li>
+              <Movielist movie={movie} onSelectedId={handleselect} />
             ))}
           {error && <Errorpage message={error} />}
         </Box1>
       </Main>
     </>
+  );
+}
+function Movielist({ movie, onSelectedId }) {
+  return (
+    <li key={movie.imdbID} onClick={() => onSelectedId(movie.imdbID)}>
+      <img src={movie.Poster} alt={`${movie.Title} poster`} />
+      <h3>{movie.Title}</h3>
+      <div>
+        <p>
+          <span>🗓</span>
+          <span>{movie.Year}</span>
+        </p>
+      </div>
+    </li>
   );
 }
 function Errorpage({ message }) {
@@ -171,7 +184,7 @@ function Logo() {
 function Box1({ children }) {
   return <div className="box">{children}</div>;
 }
-function Main({ children, selectedId, setSelectedId, movies }) {
+function Main({ children, selectedId, handleback }) {
   const [isOpen1, setIsOpen1] = useState(true);
   const [isOpen2, setIsOpen2] = useState(true);
   const [watched, setWatched] = useState(tempWatchedData);
@@ -200,7 +213,7 @@ function Main({ children, selectedId, setSelectedId, movies }) {
         {isOpen2 && (
           <>
             {selectedId ? (
-              <Moviedetail selectedId={selectedId} />
+              <Moviedetail selectedId={selectedId} handleback={handleback} />
             ) : (
               <>
                 {" "}
@@ -255,6 +268,59 @@ function Main({ children, selectedId, setSelectedId, movies }) {
     </main>
   );
 }
-function Moviedetail({ selectedId }) {
-  return <div className="details">{selectedId}</div>;
+function Moviedetail({ selectedId, handleback }) {
+  const [movie, setMovie] = useState({});
+  const {
+    Title: title,
+    Year: year,
+    Poster: poster,
+    Runtime: runtime,
+    imdbRating,
+    Plot: plot,
+    Released: released,
+    Actors: actor,
+    Director: director,
+    Genre: genre,
+  } = movie;
+  useEffect(
+    function () {
+      async function getMoviedetail() {
+        const res = await fetch(
+          `http://www.omdbapi.com/?apikey=${KEY}&i=${selectedId}`
+        );
+
+        const data = await res.json();
+        setMovie(data);
+        console.log(data)
+      }
+      getMoviedetail();
+    },
+    [selectedId]
+  );
+  return (
+    <div className="details">
+      <header>
+
+      <button className="btn-back" onClick={handleback}>
+        &larr;
+      </button>
+      <img src={poster} alt={`Photo of ${poster}`}/>
+      <div className="details-overview">
+        <h2>{title}</h2>
+        <p>{released} &bull; </p>
+        <p>{genre}</p>
+        <p><span>⭐</span>{imdbRating}</p>
+
+      </div>
+      
+      </header>
+      <section>
+        <div className="rating"><StarRating maxrate={10} size={24} /></div>
+        <p><em>{plot}</em></p>
+        <p>{actor}</p>
+        <p>{director}</p>
+
+      </section>
+    </div>
+  );
 }
