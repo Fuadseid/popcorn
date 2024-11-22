@@ -136,12 +136,15 @@ body {
 }
 /* This is a place that i change */
 .list {
-  display:flex;
+
   list-style: none;
   padding: 0.8rem 0;
   overflow: hidden;
 }
-
+.watch{
+  display:flex;
+  flex-direction:column;
+}
 .list-watched {
   height: calc(100% - 9rem);
 }

@@ -55,14 +55,18 @@ export default function App() {
   const [IsLoading, setisLoading] = useState(false);
   const [error, setError] = useState("");
   const [selectedId, setSelectedId] = useState(null);
-
+  const [watched, setWatched] = useState([]);
   function handleselect(id) {
-    setSelectedId(id);
+    setSelectedId((selectedId)=>id===selectedId?null:id);
     console.log(id);
   }
   function handleback() {
     setSelectedId(null);
   }
+function handleAddItem(movie){
+  setWatched([...watched,movie])
+}
+
   // const quiry = `interstellar`;
   useEffect(
     function () {
@@ -121,6 +125,8 @@ export default function App() {
         onSelectedId={handleselect}
         handleback={handleback}
         movies={movies}
+        watched={watched}
+        onAddItem={handleAddItem}
       >
         <Box1 movies={movies}>
           {IsLoading && <Loder />}
@@ -184,10 +190,9 @@ function Logo() {
 function Box1({ children }) {
   return <div className="box">{children}</div>;
 }
-function Main({ children, selectedId, handleback }) {
+function Main({ children, selectedId, handleback,watched,onAddItem }) {
   const [isOpen1, setIsOpen1] = useState(true);
   const [isOpen2, setIsOpen2] = useState(true);
-  const [watched, setWatched] = useState(tempWatchedData);
   const avgImdbRating = average(watched.map((movie) => movie.imdbRating));
   const avgUserRating = average(watched.map((movie) => movie.userRating));
   const avgRuntime = average(watched.map((movie) => movie.runtime));
@@ -212,9 +217,12 @@ function Main({ children, selectedId, handleback }) {
         </button>
         {isOpen2 && (
           <>
-            {selectedId ? (
-              <Moviedetail selectedId={selectedId} handleback={handleback} />
+            {
+            
+            selectedId ? (
+               <Moviedetail selectedId={selectedId} onAddItem={onAddItem}  handleback={handleback} />
             ) : (
+              
               <>
                 {" "}
                 <div className="summary">
@@ -238,11 +246,12 @@ function Main({ children, selectedId, handleback }) {
                     </p>
                   </div>
                 </div>
-                <ul className="list ">
+                <ul
+                  className="list">
                   {watched.map((movie) => (
                     <li key={movie.imdbID}>
-                      <img src={movie.Poster} alt={`${movie.Title} poster`} />
-                      <h3>{movie.Title}</h3>
+                      <img src={movie.poster} alt={`${movie.title} poster`} />
+                      <h3>{movie.title}</h3>
                       <div>
                         <p>
                           <span>⭐️</span>
@@ -261,6 +270,7 @@ function Main({ children, selectedId, handleback }) {
                   ))}
                 </ul>{" "}
               </>
+              
             )}
           </>
         )}
@@ -268,8 +278,11 @@ function Main({ children, selectedId, handleback }) {
     </main>
   );
 }
-function Moviedetail({ selectedId, handleback }) {
+function Moviedetail({ selectedId, handleback,onAddItem }) {
   const [movie, setMovie] = useState({});
+  const [IsLoading, setisLoading] = useState(false);
+  const[userRating,setUserRating] =useState('');
+
   const {
     Title: title,
     Year: year,
@@ -282,45 +295,76 @@ function Moviedetail({ selectedId, handleback }) {
     Director: director,
     Genre: genre,
   } = movie;
+function handleAdd(){
+  const newWatchedMovie ={
+   imdbID:selectedId,
+   title,
+   userRating,
+   poster,
+   imdbRating:Number(imdbRating),
+   runtime:Number(runtime.split(' ').at(0)),
+
+  }
+  onAddItem(newWatchedMovie);
+  handleback();
+}
+
   useEffect(
     function () {
       async function getMoviedetail() {
+        setisLoading(true);
         const res = await fetch(
           `http://www.omdbapi.com/?apikey=${KEY}&i=${selectedId}`
         );
 
         const data = await res.json();
         setMovie(data);
-        console.log(data)
+        console.log(data);
+        setisLoading(false);
       }
       getMoviedetail();
+      
     },
     [selectedId]
   );
   return (
+
     <div className="details">
+    {IsLoading ?  <Loder/> :
+<>
       <header>
-
       <button className="btn-back" onClick={handleback}>
-        &larr;
+      &larr;
       </button>
-      <img src={poster} alt={`Photo of ${poster}`}/>
+      <img src={poster} alt={`Photo of ${poster}`} />
       <div className="details-overview">
-        <h2>{title}</h2>
-        <p>{released} &bull; </p>
-        <p>{genre}</p>
-        <p><span>⭐</span>{imdbRating}</p>
-
+      <h2>{title}</h2>
+      <p>
+      {released} &bull; {runtime}
+      </p>
+      <p>{genre}</p>
+      <p>
+      <span>⭐</span>
+      {imdbRating}
+      </p>
       </div>
-      
       </header>
       <section>
-        <div className="rating"><StarRating maxrate={10} size={24} /></div>
-        <p><em>{plot}</em></p>
-        <p>{actor}</p>
-        <p>{director}</p>
-
+      <div className="rating">
+      <StarRating maxrate={10} size={24} onSetrating={setUserRating}/>
+      { userRating>0&&
+      <button onClick={handleAdd} className="btn-add">Add to watched list</button>
+      }
+      </div>
+      <p>
+      <em>{plot}</em>
+      </p>
+      <p>{actor}</p>
+      <p>{director}</p>
       </section>
-    </div>
-  );
-}
+</>
+    }
+      </div>
+    );
+  }
+  
