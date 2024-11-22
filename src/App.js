@@ -69,7 +69,7 @@ function handleAddItem(movie){
 function handledelate(id){
   setWatched(watched.filter(movies=>id!==movies.imdbID))
 }
-
+    
   // const quiry = `interstellar`;
   useEffect(
     function () {
@@ -318,7 +318,14 @@ function handleAdd(){
   onAddItem(newWatchedMovie);
   handleback();
 }
+  useEffect(function(){
+   document.title=`${title}`
+console.log(title);
+return function (){
+  document.title='usePopcorn';
+}
 
+  },[title])
   useEffect(
     function () {
       async function getMoviedetail() {
