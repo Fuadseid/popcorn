@@ -69,16 +69,17 @@ function handleAddItem(movie){
 function handledelate(id){
   setWatched(watched.filter(movies=>id!==movies.imdbID))
 }
-    
+   
   // const quiry = `interstellar`;
   useEffect(
     function () {
+      const controller = new AbortController();
       async function fetchMovie() {
         try {
           setisLoading(true);
 
           const res = await fetch(
-            `http://www.omdbapi.com/?apikey=${KEY}&s=${query}`
+            `http://www.omdbapi.com/?apikey=${KEY}&s=${query}`,{signal:controller.signal}
           );
 
           if (!res.ok)
@@ -90,7 +91,10 @@ function handledelate(id){
           setMovies(data.Search);
           console.log(data.Search);
         } catch (err) {
-          setError(err.message);
+          if(err.name!=='AbortError'){
+            
+            setError(err.message);
+          }
         } finally {
           setisLoading(false);
         }
@@ -104,6 +108,9 @@ function handledelate(id){
     .then((data) => setMovies(
       )); */
       fetchMovie();
+      return function(){
+        controller.abort();
+      }
     },
     [query]
   );
