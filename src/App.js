@@ -66,6 +66,9 @@ export default function App() {
 function handleAddItem(movie){
   setWatched([...watched,movie])
 }
+function handledelate(id){
+  setWatched(watched.filter(movies=>id!==movies.imdbID))
+}
 
   // const quiry = `interstellar`;
   useEffect(
@@ -127,13 +130,14 @@ function handleAddItem(movie){
         movies={movies}
         watched={watched}
         onAddItem={handleAddItem}
+        handledelate={handledelate}
       >
         <Box1 movies={movies}>
           {IsLoading && <Loder />}
           {!IsLoading &&
             !error &&
             movies?.map((movie) => (
-              <Movielist movie={movie} onSelectedId={handleselect} />
+              <Movielist  movie={movie} onSelectedId={handleselect} />
             ))}
           {error && <Errorpage message={error} />}
         </Box1>
@@ -190,7 +194,7 @@ function Logo() {
 function Box1({ children }) {
   return <div className="box">{children}</div>;
 }
-function Main({ children, selectedId, handleback,watched,onAddItem }) {
+function Main({ children, selectedId, handleback,watched,onAddItem, handledelate}) {
   const [isOpen1, setIsOpen1] = useState(true);
   const [isOpen2, setIsOpen2] = useState(true);
   const avgImdbRating = average(watched.map((movie) => movie.imdbRating));
@@ -220,7 +224,7 @@ function Main({ children, selectedId, handleback,watched,onAddItem }) {
             {
             
             selectedId ? (
-               <Moviedetail selectedId={selectedId} onAddItem={onAddItem}  handleback={handleback} />
+               <Moviedetail selectedId={selectedId} onAddItem={onAddItem}  handleback={handleback} watched={watched} />
             ) : (
               
               <>
@@ -234,16 +238,18 @@ function Main({ children, selectedId, handleback,watched,onAddItem }) {
                     </p>
                     <p>
                       <span>⭐️</span>
-                      <span>{avgImdbRating}</span>
+                      <span>{avgImdbRating.toFixed(2)}</span>
                     </p>
                     <p>
                       <span>🌟</span>
-                      <span>{avgUserRating}</span>
+                      <span>{avgUserRating.toFixed(2)}</span>
                     </p>
                     <p>
                       <span>⏳</span>
                       <span>{avgRuntime} min</span>
+                      
                     </p>
+                    
                   </div>
                 </div>
                 <ul
@@ -264,7 +270,9 @@ function Main({ children, selectedId, handleback,watched,onAddItem }) {
                         <p>
                           <span>⏳</span>
                           <span>{movie.runtime} min</span>
+                          <button onClick={()=>handledelate(movie.imdbID)} className="btn-delete">X</button>
                         </p>
+                        
                       </div>
                     </li>
                   ))}
@@ -278,11 +286,13 @@ function Main({ children, selectedId, handleback,watched,onAddItem }) {
     </main>
   );
 }
-function Moviedetail({ selectedId, handleback,onAddItem }) {
+function Moviedetail({ selectedId, handleback,onAddItem,watched }) {
   const [movie, setMovie] = useState({});
   const [IsLoading, setisLoading] = useState(false);
   const[userRating,setUserRating] =useState('');
+ const isWatched = watched.map(movie=>movie.imdbID).includes(selectedId);
 
+ const WatchedUserRating= watched.find(movie=>selectedId===movie.imdbID)?.userRating;
   const {
     Title: title,
     Year: year,
@@ -351,10 +361,14 @@ function handleAdd(){
       </header>
       <section>
       <div className="rating">
+        {!isWatched?
+        <>
       <StarRating maxrate={10} size={24} onSetrating={setUserRating}/>
       { userRating>0&&
-      <button onClick={handleAdd} className="btn-add">Add to watched list</button>
+        <button onClick={handleAdd} className="btn-add">Add to watched list</button>
       }
+      </>:<p>You rated This Movie {WatchedUserRating}<span>⭐</span> </p>
+    }
       </div>
       <p>
       <em>{plot}</em>
