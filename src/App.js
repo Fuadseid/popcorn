@@ -50,7 +50,7 @@ const KEY = "2c37991c";
 const average = (arr) =>
   arr.reduce((acc, cur, i, arr) => acc + cur / arr.length, 0);
 export default function App() {
-  const [query, setQuery] = useState("inception");
+  const [query, setQuery] = useState("");
   const [movies, setMovies] = useState([]);
   const [IsLoading, setisLoading] = useState(false);
   const [error, setError] = useState("");
@@ -326,6 +326,7 @@ function handleAdd(){
   handleback();
 }
   useEffect(function(){
+   
    document.title=`${title}`
 console.log(title);
 return function (){
@@ -333,6 +334,21 @@ return function (){
 }
 
   },[title])
+  useEffect(function(){
+    const callback =
+  document.addEventListener('keydown',function(e){
+    if(e.code==='Escape'){
+      handleback();
+    }
+  })
+  return function(){
+    document.removeEventListener('keydown',function(e){
+      if(e.code==='Escape'){
+        handleback();
+      }
+    })
+  }
+  },[])
   useEffect(
     function () {
       async function getMoviedetail() {
