@@ -55,7 +55,10 @@ export default function App() {
   const [IsLoading, setisLoading] = useState(false);
   const [error, setError] = useState("");
   const [selectedId, setSelectedId] = useState(null);
-  const [watched, setWatched] = useState([]);
+  const [watched, setWatched] = useState(function(){
+    const storageValue = localStorage.getItem('watched');
+    return JSON.parse(storageValue);
+  });
   function handleselect(id) {
     setSelectedId((selectedId)=>id===selectedId?null:id);
     console.log(id);
@@ -69,6 +72,10 @@ function handleAddItem(movie){
 function handledelate(id){
   setWatched(watched.filter(movies=>id!==movies.imdbID))
 }
+
+useEffect(function(){
+  localStorage.setItem('watched',JSON.stringify(watched))
+},[watched])
    
   // const quiry = `interstellar`;
   useEffect(
@@ -107,6 +114,7 @@ function handledelate(id){
       /*  .then((res) => res.json())
     .then((data) => setMovies(
       )); */
+      handleback();
       fetchMovie();
       return function(){
         controller.abort();
@@ -124,7 +132,7 @@ function handledelate(id){
           type="text"
           placeholder="Search movies..."
           value={query}
-          onChange={(e) => setQuery(e.target.value)}
+          onChange={(e) => setQuery(e.target.value) }
         />
         <Result>
           Found <strong>{movies.length}</strong> results
