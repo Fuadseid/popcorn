@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import StarRating from "./StarRating";
 import { useMovies } from "./useMovies";
 import { useLocalstorageState } from "./useLocalstorageState";
+import { useKey } from "./useKey";
 const KEY = "2c37991c";
 const average = (arr) =>
   arr.reduce((acc, cur, i, arr) => acc + cur / arr.length, 0);
@@ -26,12 +27,7 @@ export default function App() {
     setWatched(watched.filter((movies) => id !== movies.imdbID));
   }
 
-  useEffect(
-    function () {
-      localStorage.setItem("watched", JSON.stringify(watched));
-    },
-    [watched]
-  );
+
   const {movies,IsLoading,error}=useMovies(query)
 
   // const quiry = `interstellar`;
@@ -71,18 +67,13 @@ export default function App() {
 }
 function Input({query,setQuery}) {
   const focuses = useRef(null);
-  useEffect(function () {
-    function callback(e) {
-      if(document.activeElement===focuses.current) return;
-      if (e.code === "Enter") {
-        focuses.current.focus();
-        setQuery('');
-      }
-    }
-    document.addEventListener("keydown", callback);
+  useKey('Enter',function(){
+    if(document.activeElement===focuses.current) return;
+      focuses.current.focus();
+      setQuery('');
+    
+  })
 
-    return ()=> document.removeEventListener("keydown", callback);
-  }, [setQuery]);
   return (
     <input
       ref={focuses}
@@ -291,20 +282,9 @@ function Moviedetail({ selectedId, handleback, onAddItem, watched }) {
     },
     [title]
   );
-  useEffect(function () {
-    const callback = document.addEventListener("keydown", function (e) {
-      if (e.code === "Escape") {
-        handleback();
-      }
-    });
-    return function () {
-      document.removeEventListener("keydown", function (e) {
-        if (e.code === "Escape") {
-          handleback();
-        }
-      });
-    };
-  }, []);
+
+  useKey('Escape',handleback);
+
   useEffect(
     function () {
       async function getMoviedetail() {
